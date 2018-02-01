@@ -72,11 +72,13 @@ _this is the whole ssh-keygen process_
 ## Digital Ocean account
 - Sign up for a droplet on Digital Ocean.
 - In the Security Settings, paste in the public SSH key. Give it a name to remember which key it is, probably something like "Michelle-Macbook" to remember which computer it is connected to.
-- Most students should choose Ubuntu for the operation system.
+- Create a droplet. 
+    - Most students should choose Ubuntu for the operation system.
 - Select a droplet size. Most students choose the cheapest droplet (about $5 per month).
 - When asked, choose a data center close to you (e.g, San Francisco for the West Coast).
-- Select the SSH key you registered earlier.
-- Choose a droplet name that can represent multiple projects, not just one (e.g., "kevin-droplet" rather than "personal-project").
+- Don't worry about the rest of the options.
+- Under Add your SSH keys, select the SSH key you registered earlier.
+- Choose a hostname that can represent multiple projects, not just one (e.g., "kevin-droplet" rather than "personal-project"). The name isn't very important.
 - Once the droplet is created, you will receive the droplet's IP address. You will use this to connect to your server through the command line, and you will also use it to log on to the site once it is hosted (unless you set up a domain).
 
 ###### Possible issues:
@@ -89,8 +91,10 @@ _this is the whole ssh-keygen process_
 
 ## connect to server
 - Open Terminal.app or another command line interface.
-- Type ```ssh root@your.ip.address.here``` (e.g., ```ssh root@127.48.12.123```) to connect to your droplet through the command line.
+- Type ```ssh root@your.ip.address.here``` (e.g., ```ssh root@127.48.12.123```) to connect to your droplet through the command line. This opens a secure shell for you to connect to your droplet.
+- Type yes, you want to continue connecting. Not y, yes.
 - You will need your password to connect. **YOU DIDN'T FORGET IT, DID YOU?**
+- Now that you're connected, anything you can do from the terminal you can do to your droplet.
 
 <details> <summary> Additional SSH login options </summary>
 
@@ -146,7 +150,7 @@ _this is what it will look like the first time you ssh into your server_
 ## All In One Setup
 We can setup our server with all the basics it will need with the script below.  We will talk about what each part is doing in the following sections.  If you want to jump to the next step go [here](#prep-code-for-production).  These lines will cover the setup of a [swapfile](#swapfile), [installing node](#install-node), [installing nginx](#install-nginx), [installing pm2](#pm2).
 
-Copy all of this in at once into your server terminal.  You will only do this ONCE when creating a new droplet.  You do not repeat these steps for each project.  
+Copy all of this in at once into your server terminal.  You will only do this ONCE when creating a new droplet.  You do not repeat these steps for each project. It's a one time thing.
 
 Copy This one
 
@@ -169,6 +173,7 @@ npm i -g npm;
 npm i -g pm2;
 apt-get install nginx -y;
 ```
+`apt-get` is like `npm`. It installs all the packages you need for your droplet. The package `n` allows Node.js to update on it's own. And other various software for our server.
 
 ## swapfile
 Many students buy a Digital Ocean droplet on the $5 tier, which comes with limited memory. A swapfile can effectively extend the amount of given memory by swapping out less-recently-used files to the hard disk. This can come in handy. For example, sometimes when running a build on a low-memory droplet, the process will time out because there is not enough memory. Having a swapfile in place can help with this. A swapfile is also a good idea if your project uses Gulp.
@@ -196,6 +201,8 @@ swapon /swapfile
 
 ## install Node
 
+?????????? ===>>>> Did we do this section?
+
 The first time you access your droplet, you need to install Node/npm so you can manage and run your code.
 - Run ```apt-get update && apt-get dist-upgrade``` to update the software Linus know about.
 - Run ```apt-get install python-software-properties```. **This is only a dependency, we aren't doing anything with Python**
@@ -210,10 +217,10 @@ The first time you access your droplet, you need to install Node/npm so you can 
 
 ## prep code for production
 ###### turn off React's service worker
-If your project was bootstrapped using create-react-app, a default service worker was registered in your index.js file. Make sure ```registerServiceWorker()``` is commented out or that the service worker is otherwise not registered. Doing so will save some headaches caused when trying to serve your local files and server files together.
+If your project was bootstrapped using create-react-app, a default service worker was registered in your index.js file. Make sure ```registerServiceWorker()``` is commented out or that the service worker is otherwise not registered. Doing so will save some headaches caused when trying to serve your local files and server files together. Service workers are great, just don't use the one from create-react-app.
 
 ###### .env variables
-- On local machine, instead of using absolute paths (e.g., 'http://localhost:3200/auth') use environment variables. In other words, everywhere you have a full path with "localhost" in it, replace that path string with a reference to a variable, and store that variable and value in your .env (or config.js) file.
+- On local machine, instead of using absolute paths (e.g., 'http://localhost:3200/auth') use environment variables. In other words, everywhere you have a full path with "localhost" in it, replace that path string with a reference to a variable, and store that variable and value in your .env (or config.js) file. You should have zero references to localhost in your project otherwise it will look at the client's computer and not to your server. Keep in mind that if you're using a .env variable in your React app, you must preface it with `REACT_APP_` otherwise it will hate you.
     - For example, if you have an ```<a>``` tag with an Auth0 link like this...
 
         ``` <a href={"http://localhost:3200/auth"}><li>Log in</li></a> ```
@@ -228,6 +235,9 @@ If your project was bootstrapped using create-react-app, a default service worke
 
 - Replacing full paths with environment variables is generally a good idea throughout your whole app (both front end and back). For React, however, keep two things in mind:
     1. If you built your front end with ```create-react-app```, your React front end can only access variables that start with ```REACT_APP_```. The ```npm start``` command builds them into the app. Variables that are accessed outside of React (i.e., in your back end), do not need the ```REACT_APP_``` prefix.
+    
+    ?????????? ===>>>> I'm confused about step 2.
+    
     2. ```create-react-app``` does not allow you to access files outside the src folder, so if you need environment variables in your front end, you will have to put an .env file inside the src folder.
 
 ###### build folder
@@ -236,7 +246,7 @@ If your project was bootstrapped using create-react-app, a default service worke
 - In your server, use the code below to point your server to your front end static files. This tells express to look for a build folder. The ```__dirname``` variable tells it to start at the current file where Node is running (i.e., your server file), and ```/../build``` tells it to then go up one file and into a build folder.
 ```app.use( express.static( `${__dirname}/../build` ) );```
 
-- If you are using React Router's browserHistory, you'll need to use Node's built-in ```path.join()``` method as a catch-all to ensure the index.html file is given on the other routes. Although ```path``` is built in, you must require it with ```const path = require('path');```. Then invoke the ```join()``` method in your server near the end, below all other endpoints, since this endpoint uses an asterisk as a catch-all for everything other than specified endpoints.
+- If you are using React Router's `BrowserRouter`, you'll need to use Node's built-in ```path.join()``` method as a catch-all to ensure the index.html file is given on the other routes. Although ```path``` is built in, you must require it with ```const path = require('path');```. Then invoke the ```join()``` method in your server near the end, below all other endpoints, since this endpoint uses an asterisk as a catch-all for everything other than specified endpoints.
     ```js
     app.get('*', (req, res)=>{
         res.sendFile(path.join(__dirname, '../build/index.html'));
@@ -262,6 +272,9 @@ If you used create-react-app, your README is full of boilerplate docs about crea
 ###### push and pull from GitHub
 - Commit and push your working code to GitHub.
 - Use ```ssh root@your.ip.address``` to connect to your droplet, and use ```cd``` to go into your project folder on the server.
+
+?????????? ===>>>> Using a project folder??? What do you do if you have multiple projects in one droplet?
+
 - Clone the project to the server using ```git clone url-to-your-github-project```. Once done, your code will be on the server, except for node_modules, .env variables, and a build folder (since these are all .gitignored and therefore not copied to and from GitHub).
 
 ###### node_modules
@@ -270,11 +283,17 @@ If you used create-react-app, your README is full of boilerplate docs about crea
 ###### .env file
 - Recreate any .env file or config.js in the the server.
     - Use ```touch .env``` to make an .env file.
-    - Use ```nano .env``` to edit the file.
-- Go to your code editor and copy the contents of your local .env file. Inside nano on the server, paste in the contents you copied so they will now be in the server .env file. Change any full paths containing "localhost" (e.g., 'http://localhost:3100/api/users') to relative paths instead (e.g., '/api/users'). We do this because your server might be structured differently than your local machine, so we give the server a relative path, and it knows what to do from there.
+    - Use ```nano .env``` to edit the file. (Nano is an inline editor for files.)
+- Go to your code editor and copy the contents of your local .env file. Change any full paths containing "localhost" (e.g., 'http://localhost:3100/api/users') to relative paths instead (e.g., '/api/users'). We do this because your server might be structured differently than your local machine, so we give the server a relative path, and it knows what to do from there. Before you may have needed a reference to localhost if you were using an `<a>` tag, usually with Auth, you still need to remove those localhost references and give the reigns to your server.
+- Make sure that all the variables/information is correct.
+- Inside nano on the server, paste in the contents you copied so they will now be in the server .env file.
 - To exit nano, use Ctrl+x to exit. It will ask if you want to save. Type ```Yes``` or ```y```, then hit Return to confirm.
+- It may be good to run `cat .env` to make sure that everything saved correctly.
+- It also may be good to run `node server/index.js` to make sure that everything starts up correctly.
+    - If you load up this IP Address in your browser, it won't work. You need to do the next step.
 
 ###### build folder
+- Your build folder you may have been using before was in your `.gitignore` and so it didn't get pushed up. This needs to be done now.
 - Create a build folder using ```npm run build```. This will create a folder called "build" with an optimized version of your project. The express.static line you added to the server file will tell the server to look in that build folder for the static files that need to be served.
 - Now your entire project is saved to the server, including code, node_modules, .env files, and build folder. The next step is to run Node on our project to see if it works from the server.
 
@@ -282,7 +301,7 @@ If you used create-react-app, your README is full of boilerplate docs about crea
 ###### Possible issues:
 - It is possible to get a timeout error when running a build on your server. This may happen if your droplet is the cheapest tier (with the least RAM). You might fix this by implementing a swapfile (see the optional section on swapfiles). If you already created a swapfile, trying running through all those swapfile commands again (perhaps there was an error when creating it the first time).
 - If you see an error saying ```npm build``` was called without any arguments, try ```npm run build``` instead. Your ```package.json``` file shows both ```start``` and ```build``` together in the ```scripts``` section, and you are used to running ```npm start``` (with no "run" command), so you may think you can run ```npm build``` the same way. It is true that leaving out ```run``` is a shorthand way of running scripts, but there is already a built-in npm command for ```npm build``` (used to build Node add-ons FYI), and that built-in command overshadows the ```npm build``` shorthand. **TL;DR**: Try ```npm run build``` instead.
-
+- Auth may break, add the new IP Address callback URL to your allowed callback URLs in your Auth0 account.
 
 ***
 
@@ -309,7 +328,8 @@ If you used create-react-app, your README is full of boilerplate docs about crea
 ## pm2
 
 ###### Install and start pm2
-- Use ```npm install -g pm2``` to install.
+- You can't run your server from your computer, you close your terminal, your server is in trouble. Why pm2 is used.
+- It should have already been installed --- Use ```npm install -g pm2``` to install.
 - Use ```cd``` to go to the top level of your project file.
 - Use ```pm2 start [path to server file]``` to start pm2 (e.g., ```pm2 start server/server.js```).
 
@@ -339,12 +359,14 @@ When you have multiple files to host, nginx will let you keep them on the same d
 <details> <summary> nginx installation and configuration </summary>
 
 ###### Install nginx
+- This will already have been done so you can skip to the next step, configure.
 - Run ```sudo apt-get install nginx```.
 - The ```nginx/``` folder should now be installed in the ```/etc/``` folder. Inside ```nginx/```, Ubuntu should have installed multiple files and folders, including ```sites-available/``` and ```sites-enabled/```. If these two folders are not here, create them inside the ```nginx/``` folder by running ```touch sites-available sites-enabled```. Although the simplest way is to edit the default file that was probably created for you in ```sites-available/```, it may be a better practice to leave the default file alone and instead create and configure a small file for each hosted project site.
 - After making configuration files in ```sites-available``` for each project, we will make links to those files in the ```sites-enabled``` folder. nginx uses this ```sites-enabled/``` folder to know which projects should be active.
 
 ###### Configure nginx
 - Go to nginx's "sites-available/" folder by running ```cd /etc/nginx/sites-available```.
+    - There should be a file called default.
 - SIDE NOTE: A default file was probably created automatically in ```sites-available/``` by the installation. This file has many comments and shows sample configurations for nginx files. If you do not have a default file, below is an example of a default file. It is just a reference. We won't need it for this tutorial, so feel free to move ahead.
 
     <details> <summary> default file in sites-available/ </summary>
@@ -438,19 +460,20 @@ When you have multiple files to host, nginx will let you keep them on the same d
         #}
         ```
     </details>
-
-- Inside the ```sites-available/``` folder, create a file for each project using the ```touch``` command followed by the name of your project. No file extension is needed for these files. For example, if your project is called "wonderapp", you might type ```touch wonderapp```.
-- Use ```nano``` to open each file and put in code in the format below. Notice the comments telling you what changes to make for your project.
-
+    
+- `nano detail` and control + k to cut all the lines out of the `detail` file.
+- ??????? =======>>>>> Did we do this step??? Inside the ```sites-available/``` folder, create a file for each project using the ```touch``` command followed by the name of your project. No file extension is needed for these files. For example, if your project is called "wonderapp", you might type ```touch wonderapp```.
+- ??????? =======>>>>> open each file??? Not just Detail? Use ```nano``` to open each file and put in code in the format below. Notice the comments telling you what changes to make for your project.
+- If you have multiple projects, just paste in a new block of server code underneath the first one and so on. Make sure the server port is different!
 
 ```
 server {
     listen 80; #80 IS THE USUAL PORT TO USE HERE
 
-    server_name your_project.your_domain.com #PUT YOUR DOMAIN HERE
+    server_name your_project.your_domain.com; #PUT YOUR DOMAIN HERE (if you have multiple CNAMEs, list them and separate with a space)
 
     location / {
-        proxy_pass http://127.0.0.1:3001; #PUT YOUR SERVER PORT HERE
+        proxy_pass http://127.0.0.1:3001; #PUT YOUR SERVER PORT HERE (whatever is the port number in your .env file)
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -459,10 +482,10 @@ server {
     }
 }
 ```
+- Save your file and exit.
 
-
-- Go to nginx's ```sites-enabled/``` folder by running ```cd /etc/nginx/sites-enabled```.
-- Inside the ```sites-enabled/``` folder create a symlink for each project using ```ln -s ../sites-available/[project_file_in_sites_available]```. For example, if the file you previously made in ```sites-available/``` was called ```wonderapp```, here you would run ```ln -s ../sites-available/wonderapp```. This creates a symlink between the file that was made in ```sites-available/``` and the the ```sites-enabled/``` folder.
+- ??????? =======>>>>> Did we do this step???Go to nginx's ```sites-enabled/``` folder by running ```cd /etc/nginx/sites-enabled```.
+- ??????? =======>>>>> Did we do this step???Inside the ```sites-enabled/``` folder create a symlink for each project using ```ln -s ../sites-available/[project_file_in_sites_available]```. For example, if the file you previously made in ```sites-available/``` was called ```wonderapp```, here you would run ```ln -s ../sites-available/wonderapp```. This creates a symlink between the file that was made in ```sites-available/``` and the the ```sites-enabled/``` folder.
 - Test the nginx configuration by running ```sudo nginx -t```.
 - Restart nginx by running ```sudo service nginx restart```. Your enabled sites should now be up and running as soon as you start the server (see the **test with Node** and **pm2** sections below).
 - If you are wondering how nginx knows to check each of these new files you linked to in ```/sites-enabled```, take a look at the ```nginx.conf``` file in the ```nginx/``` folder by running ```cat /etc/nginx/nginx.conf```. Near the bottom of the file, you should see ```include /etc/nginx/sites-enabled/*;```. This line points nginx to each file in ```/sites-enabled```, so any new file you create there will be included.
@@ -521,6 +544,18 @@ server {
 Unless you have lots of friends that enjoy accessing websites by ip (You know they exist) You'll want to route your domain to point at your server.  This is slightly different for each register.  Or you can tell the reigstrar to let Digital Ocean manage your routes.  [Here](https://github.com/zacanger/doc/blob/master/digital-ocean.md#domains) is a short description of how to set up Domain records.
 
 [Google Domains](https://support.google.com/domains/answer/3290350?hl=en)
+- Custom resource records 
+    - You can add a sub domain by replacing the @ in the first input with the subdomain (don't add the dot).
+    - With the drop down, select the A name.
+     - CNAME lets your attach something to an existing A Name record. CNAME is like an alias or nickname and will point to your existing site. @ sign for primary, or replace with a word in the second input.
+    - Paste in your IP Address. 
+    - Add. Keep in mind that it can take a second.
+ - Make sure to add this domain to your whitelist in Auth0.
+
+??????????=====>>> I don't get when to do port 80 ... port 3005... nginx?
+
+     - You'll still have to reference the port number.
+     - Nginx
 
 [Name Cheap](https://www.namecheap.com/support/knowledgebase/article.aspx/319/2237/how-can-i-set-up-an-a-address-record-for-my-domain)
 
