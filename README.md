@@ -196,21 +196,6 @@ swapon /swapfile
 ###### Possible issues:
 - If the you get an error related to the ```fallocate``` command, it may be that the swapfile is currently on. You cannot fallocate a swapfile that is currently in use. Try turning off the swapfile with ```swapoff /swapfile``` and then entering the commands again, starting with ```fallocate -l 1G /swapfile``` and ending with ```swapon /swapfile``` (which turns it back on).
 
-***
-
-
-## install Node
-
-?????????? ===>>>> Did we do this section?
-
-The first time you access your droplet, you need to install Node/npm so you can manage and run your code.
-- Run ```apt-get update && apt-get dist-upgrade``` to update the software Linus know about.
-- Run ```apt-get install python-software-properties```. **This is only a dependency, we aren't doing anything with Python**
-- Run ```curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -``` to add version 8 of Node.js and most up to date npm to your ```apt``` repository. _If you want a different version of node, change the 8 after ```setup_.```_
-- Run ```apt-get install nodejs -y``` to install Node/npm.
-- Double-check your versions and install with ```node -v``` and ```npm -v```.
-
-[![install node](https://s2.postimg.org/b5pj2yk95/Screen_Shot_2017-12-15_at_9.57.05_AM.png)](https://youtu.be/YSCw5Gua6wU)
 
 ***
 
@@ -235,10 +220,6 @@ If your project was bootstrapped using create-react-app, a default service worke
 
 - Replacing full paths with environment variables is generally a good idea throughout your whole app (both front end and back). For React, however, keep two things in mind:
     1. If you built your front end with ```create-react-app```, your React front end can only access variables that start with ```REACT_APP_```. The ```npm start``` command builds them into the app. Variables that are accessed outside of React (i.e., in your back end), do not need the ```REACT_APP_``` prefix.
-    
-    ?????????? ===>>>> I'm confused about step 2.
-    
-    2. ```create-react-app``` does not allow you to access files outside the src folder, so if you need environment variables in your front end, you will have to put an .env file inside the src folder.
 
 ###### build folder
 - Make sure the project is working on your local machine.
@@ -271,11 +252,9 @@ If you used create-react-app, your README is full of boilerplate docs about crea
 
 ###### push and pull from GitHub
 - Commit and push your working code to GitHub.
-- Use ```ssh root@your.ip.address``` to connect to your droplet, and use ```cd``` to go into your project folder on the server.
-
-?????????? ===>>>> Using a project folder??? What do you do if you have multiple projects in one droplet?
-
+- Use ```ssh root@your.ip.address``` to connect to your droplet.
 - Clone the project to the server using ```git clone url-to-your-github-project```. Once done, your code will be on the server, except for node_modules, .env variables, and a build folder (since these are all .gitignored and therefore not copied to and from GitHub).
+- Use ```cd``` to go into your project folder on the server.
 
 ###### node_modules
 - Run ```npm install``` inside the project folder on the server to install node packages.
@@ -359,8 +338,6 @@ When you have multiple files to host, nginx will let you keep them on the same d
 <details> <summary> nginx installation and configuration </summary>
 
 ###### Install nginx
-- This will already have been done so you can skip to the next step, configure.
-- Run ```sudo apt-get install nginx```.
 - The ```nginx/``` folder should now be installed in the ```/etc/``` folder. Inside ```nginx/```, Ubuntu should have installed multiple files and folders, including ```sites-available/``` and ```sites-enabled/```. If these two folders are not here, create them inside the ```nginx/``` folder by running ```touch sites-available sites-enabled```. Although the simplest way is to edit the default file that was probably created for you in ```sites-available/```, it may be a better practice to leave the default file alone and instead create and configure a small file for each hosted project site.
 - After making configuration files in ```sites-available``` for each project, we will make links to those files in the ```sites-enabled``` folder. nginx uses this ```sites-enabled/``` folder to know which projects should be active.
 
@@ -461,9 +438,7 @@ When you have multiple files to host, nginx will let you keep them on the same d
         ```
     </details>
     
-- `nano detail` and control + k to cut all the lines out of the `detail` file.
-- ??????? =======>>>>> Did we do this step??? Inside the ```sites-available/``` folder, create a file for each project using the ```touch``` command followed by the name of your project. No file extension is needed for these files. For example, if your project is called "wonderapp", you might type ```touch wonderapp```.
-- ??????? =======>>>>> open each file??? Not just Detail? Use ```nano``` to open each file and put in code in the format below. Notice the comments telling you what changes to make for your project.
+- `nano default` and control + k to cut all the lines out of the `default` file.
 - If you have multiple projects, just paste in a new block of server code underneath the first one and so on. Make sure the server port is different!
 
 ```
@@ -483,9 +458,6 @@ server {
 }
 ```
 - Save your file and exit.
-
-- ??????? =======>>>>> Did we do this step???Go to nginx's ```sites-enabled/``` folder by running ```cd /etc/nginx/sites-enabled```.
-- ??????? =======>>>>> Did we do this step???Inside the ```sites-enabled/``` folder create a symlink for each project using ```ln -s ../sites-available/[project_file_in_sites_available]```. For example, if the file you previously made in ```sites-available/``` was called ```wonderapp```, here you would run ```ln -s ../sites-available/wonderapp```. This creates a symlink between the file that was made in ```sites-available/``` and the the ```sites-enabled/``` folder.
 - Test the nginx configuration by running ```sudo nginx -t```.
 - Restart nginx by running ```sudo service nginx restart```. Your enabled sites should now be up and running as soon as you start the server (see the **test with Node** and **pm2** sections below).
 - If you are wondering how nginx knows to check each of these new files you linked to in ```/sites-enabled```, take a look at the ```nginx.conf``` file in the ```nginx/``` folder by running ```cat /etc/nginx/nginx.conf```. Near the bottom of the file, you should see ```include /etc/nginx/sites-enabled/*;```. This line points nginx to each file in ```/sites-enabled```, so any new file you create there will be included.
@@ -551,9 +523,6 @@ Unless you have lots of friends that enjoy accessing websites by ip (You know th
     - Paste in your IP Address. 
     - Add. Keep in mind that it can take a second.
  - Make sure to add this domain to your whitelist in Auth0.
-
-??????????=====>>> I don't get when to do port 80 ... port 3005... nginx?
-
      - You'll still have to reference the port number.
      - Nginx
 
